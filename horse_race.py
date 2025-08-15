@@ -1,4 +1,4 @@
-﻿'''
+'''
     HORSE RACE
     A day at the races without even having
     to leave the ZX-80! Four horses (A, B, C,
@@ -24,97 +24,132 @@
                 B Bet
                 O(1)Odds for each horse
                 D, D(I) Distance covered
+
+    Sections in original listing:
+        lines 50-130 : Declarations
+        lines 130-160: Sub to print distance lapsed by one horse
+        lines 170-270 : Reset variables
+        lines 280-320 : User betting input
+        lines 330-530 : Horse racing (4 laps)
+        lines 540-580 : Print winner and calculate winnings
+        lines 590-620 : Decide to play again?
+
+        
+    This version tries to closely replicate the BASIC listing
+
 '''
 
 import random
+import os
 
-#region Declarations
+O = [] #odds
+MD = 0 #max distance, to replace D in original listing and eleminate confusion in the code
+D = [0,0,0,0] #distance covered
+M = 100 #money left
+B = 0 # bet amount
+AS = '._/'
+BS = ' /~|'
+CS = '´  `'
 
-odds = [] 
-horses = {'A':0, 'B':0, 'C':0, 'D':0} # 4 horses and their odds
-distance = {'A':0, 'B':0, 'C':0, 'D':0}  # Distance covered by each horse
-finished = {'A':False, 'B':False, 'C':False, 'D':False}  # Whether each horse has finished
+#region printing
+def print_distance_marker(distance):
+    '''
+    for sub-routine in lines 130 to 160
+    '''
+    print('^' * distance )
 
+#endregion // END printing
 
-money = 100  # Starting money
-bet = 0  # Bet amount
-bet_horse = ''  # Horse on which the bet is placed
-#endregion // END Declarations 
+def generate_odds():
+    global O
+    O = [random.randint(1, 10) for _ in range(4)]
+    print("Odds generated:", O)
 
+def reset_variables():
+    '''
+    for sub-routine in lines 170 to 270
+    '''
+    global D, B, O
+    D = [0, 0, 0, 0]  # Reset distances for each horse
+    B = 0  # Reset bet amount
+    O = []  # Reset odds
 
-#region Printing Functions
-
-def print_horses():
-    print("Horses and Odds:")
-    for horse, odds_value in horses.items():
-        print(f"Horse {horse}: Odds {odds_value}")
-
-def print_bet():
-    print(f"Your bet: £{bet} on horse {bet_horse}")        
-
-def print_odds():
-    print("Current Odds:")
-    for horse, odds_value in horses.items():
-        print(f"Horse {horse}: Odds {odds_value}")
-
-def print_race_status():
-    print("Current Race Status:")
-    for horse, dist in distance.items():
-        status = "Finished" if finished[horse] else f"Distance: {dist}"
-        print(f"Horse {horse}: {status}")
+while M > 0:
+    # 1 - reset variables
+    reset_variables()
+    # 2- generate odds
+    generate_odds()
+    # 3 - get bet
+    print(f'You have £{M} to bet.') 
+    B = -1
+    while B < 0:
+        try:
+            B = int(input("Enter your bet amount (enter 0 to exit): "))
+            if B < 0 or B > M:
+                print(f"Invalid bet amount. You can bet between 1 and {M}.")
+                B = -1
+        except ValueError:
+            print("Please enter a valid integer for the bet amount.")
+    if B == 0:
+        break  # exit if bet is 0
     
-def print_winner(winner):
-    if winner:
-        print(f"The winner is Horse {winner}!")
-    else:
-        print("No winner yet.")
+    # 4 - get horse
+    H = ''
+    while H not in ['A', 'B', 'C', 'D']:
+        H = input("Enter the horse you want to bet on (A, B, C, D): ").upper()
+        if H not in ['A', 'B', 'C', 'D']:
+            print("Invalid horse. Please choose A, B, C, or D.")
+            H = ''
 
-def print_money():
-    print(f"Money left: £{money}")
-#endregion // END Printing Functions
-
-
-def reset_race():
-    global horses, distance, finished, money, bet, bet_horse, odds
-    odds = []
-    horses = {'A':0, 'B':0, 'C':0, 'D':0}
-    distance = {'A':0, 'B':0, 'C':0, 'D':0}
-    finished = {'A':False, 'B':False, 'C':False, 'D':False}
-    bet = 0
-    bet_horse = ''
-
-
-#region Betting Functions
-def set_odds():
-    global odds, horses
-    odds = [random.randint(1, 10) for _ in range(4)]  # Random odds between 1 and 10
-    total_odds = sum(odds)
-    
-    # Normalize odds to ensure they sum to 100
-    for i, horse in enumerate(horses.keys()):
-        horses[horse] = round((odds[i] / total_odds) * 100, 2)
-
-
-def place_bet():    
-    global bet, bet_horse, money
-    print_horses()
-    bet_horse = input("Place your bet on horse (A, B, C, D): ").upper()
-    
-    if bet_horse not in horses:
-        print("Invalid horse choice. Please choose A, B, C, or D.")
-        return
-    
-    try:
-        bet = int(input(f"Enter your bet amount (You have £{money}): "))
-        if bet <= 0 or bet > money:
-            print("Invalid bet amount. Please try again.")
-            return
-    except ValueError:
-        print("Invalid input. Please enter a number.")
-        return
-    
-    money -= bet
-    print_bet()
+    # 5 - start racing
+    '''
+        for race logic in lines 330 to 530
+    '''
+    J = -1 # current winner
+    MD = 0 # current max distance
+    for l in range(4): # 4 laps
+        # clear screen
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(f"Lap {l + 1}")
+        for i in range(4): # 4 horses
+            if not D[i] >= 10: # if horse has not finished
+                D[i] +=  5 + 7/O[i] + random.randint(0, 2 * O[i] // 3)  # distance covered by horse (this is a specific formula given without explanation!)
+                if D[i] > MD:
+                    MD = D[i]
+                    J = i
+                '''
+                    lines 370 and 380 in the original listing doesn't make any sense!
+                        370 IF D(I) > D(0) THEN LET D(0) = D(I)
+                        380 IF D(0) = D(I) THEN LET J = I
+                    Can anyone explains???
+                '''
+        # print horses anbd distances
+        for i in range(4):
+            print(f"Horse {chr(65 + i)}: ", end='')
+            print_distance_marker(int(D[i]))
+        # TODO:: print the special chars with racing to current max distance
+        print(AS)
+        print_distance_marker(int(MD))
+        print(BS)
+        print_distance_marker(int(MD))
+        print(CS)
+        print_distance_marker(int(MD))
 
 
-#endregion // END Betting Functions
+        # user hit a key to continue to next lap
+        if l < 3:
+            input("Press Enter to continue to the next lap...")
+
+    print(f"Horse {chr(65 + J)} is the winner!")
+    #calculate winnings
+    S = 1 * (chr(65 + J) == H)
+    M =  M - B + S * B * O[J]  # winnings or loss
+    #M + (B * O[J]) if S else M - B  # winnings or loss
+    print(f"You {'won' if S else 'lost'}! Your new balance is £{M}.")
+    # do you wnat to play again?
+    play_again = input("Do you want to play again? (y/n): ").lower()
+    if play_again != 'y':
+        break
+
+# print final balance
+print(f"Your final balance is £{M}. Thank you for playing!")
