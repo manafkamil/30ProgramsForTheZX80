@@ -7,6 +7,17 @@
     at: https://dn790005.ca.archive.org/0/items/30-programs-for-the-sinclair-zx-80-1-k/30_Programs_for_the_Sinclair_ZX80_1K.pdf
 
 
+    
+    Sinclais Spectrum Basic Emulators:
+    - https://spectrumcomputing.co.uk/emulators/zxsp  ??
+    - https://fuse-emulator.sourceforge.io/  ??
+    - https://worldofspectrum.org/emulators  ??
+    - https://spectrumonline.co/emulators/   ??
+    - https://spectrum.greatpeoples.net/     ??
+    
+    
+    - https://zx.researcher.su/en/
+
     From the original program printed in the book:
         LEAP FROG
 

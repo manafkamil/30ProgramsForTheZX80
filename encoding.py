@@ -32,7 +32,7 @@ import os
 
 
 
-#region Simulate Randomisation
+#region Simulate Randomisationa
 
 '''
     Simulates the ZX-80 random number generator.
@@ -42,79 +42,253 @@ import os
     Using the same base positive number, the series will always be the same.
     This is a simulation of that process, not an exact replica.
 '''
-series = [231, 255, 217, 21, 129, 148, 111, 54, 145, 184, 202, 187, 112, 136, 117, 133, 138, 93, 37, 172, 109, 103, 39, 210, 118, 199, 45, 71, 124, 204, 94, 122, 247, 229, 171, 205, 24, 128, 146, 240, 17, 241, 10, 65, 121, 144, 34, 116, 213, 98, 35, 160, 126, 36, 130, 228, 149, 5, 90, 134, 77, 125, 62, 127, 49, 196, 92, 11, 23, 154, 254, 28, 252, 195, 14, 233, 97, 190, 176, 223, 1, 76, 38, 206, 226, 68, 169, 106, 70, 222, 180, 48, 194, 162, 207, 75, 156, 108, 101, 234, 244, 47, 211, 8, 141, 74, 53, 236, 143, 175, 232, 82, 27, 161, 22, 119, 203, 212, 225, 182, 147, 230, 55, 91, 164, 242, 115, 239, 132, 185, 56, 218, 165, 51, 2, 69, 243, 67, 183, 151, 3, 235, 209, 140, 79, 63, 224, 84, 78, 44, 80, 58, 87, 178, 142, 6, 73, 250, 120, 150, 105, 20, 215, 181, 41, 167, 31, 33, 85, 64, 50, 191, 163, 159, 249, 179, 227, 135, 155, 72, 253, 102, 7, 40, 18, 153, 114, 131, 61, 208, 96, 100, 60, 52, 12, 89, 197, 214, 189, 32, 170, 0, 192, 16, 173, 107, 86, 193, 238, 42, 110, 166, 201, 139, 152, 246, 4, 83, 113, 59, 95, 157, 29, 158, 66, 237, 221, 25, 88, 57, 9, 168, 137, 245, 19, 186, 43, 174, 13, 46, 220, 81, 123, 99, 104, 15, 30, 248, 177, 216, 198, 188, 26, 251, 200, 219]
+# series = []
 
+def generate_random_zx80_series(seed:int):
+    '''
+    This method is designed to simulate the ZX80's pseudo-random number generator (PRNG).
+    The ZX80 used a specific Linear Congruential Generator (LCG) algorithm.
+    '''
+    modulas = 65537
+    multiplier = 75
+    increment = 1
+    new_seed = float(seed % modulas)
+    series = []
+    for _ in range(26):
+        # apply the lcg formula to generate the next seed value
+        new_seed = (multiplier * new_seed + increment) % modulas
+        # genberate the random number in float
+        rnd = new_seed / modulas
+        # convert float to int and scale it 1-26
+        series.append(int(rnd * 26) + 1)
+    return series
 
-'''
-# this is the function that generates the random series
-# this series will change every time the program is run
-# that is why we are using static value of the series here
-def generate_random_series(length):
-    """
-    Generates a pseudo-random series of integers from 0 to 255.
-    This simulates the ZX-80 random number generator.
-    """
-    global series
-    if not series:
-        series = [i for i in range(256)]
-        for i in range(len(series) - 1, 0, -1):
-            j = int.from_bytes(os.urandom(1), 'big') % (i + 1)
-            series[i], series[j] = series[j], series[i]
-    return series[:length]
-'''
-
-def get_code_number(index):
-    """
-    Returns the code number for the given index.
-    The index should be between 0 and 255.
-    """
-    if 0 <= index < len(series):
-        return series[index]
-    else:
-        raise IndexError("Index out of range. Must be between 0 and 255.")
+# def get_code_number(index):
+#     """
+#     Returns the code number for the given index.
+#     The index should be between 0 and 25.
+#     """
+#     global series
+#     if 0 <= index < len(series):
+#         return series[index]
+#     else:
+#         raise IndexError("Index out of range. Must be between 0 and 255.")
 
 
 #endregion // END Simulate Randomisation
 
 
-s1 = generate_random_series(256)
-s2 = generate_random_series(256)
-s3 = generate_random_series(256)
-s4 = generate_random_series(256)
+#region Simulate ZX80 character set map
+'''
+    Sinclair ZX80 character set map is very different from the ASCIIT character map
+    Using the logic in the original listing will work on ASCII characters
+    And it is not feasible to usee the ZX80 character set map in this scenario
+    Therefore we are simulating the alph-numeric characters
+'''
 
-# save all the series to one file
-def save_series_to_file(filename):
+alpha_numeric_charset =['1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+                       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+                       'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                       'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
+                       'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                       'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+                       'y', 'z']
+
+def determine_zx80_char_code(char: str)-> int:
+    if char in alpha_numeric_charset:
+        return alpha_numeric_charset.index(char) + 1 #zx80 codes start from 1
+    else:
+        return 0 # return 0 for non alpha numberic characters
+    
+def determine_zx80_char_from_code(code: int)-> str:
+    if 0< code<= len(alpha_numeric_charset):
+        return alpha_numeric_charset[code - 1] # zx80 codes start from 1
+    else:
+        return '' # empty string for invalid codes
+
+#endregion // END Simulate ZX80 Character set map
+
+#region Prompt user for input and key
+
+# def method to ask for message to encode/decode
+def get_message():
     """
-    Saves the generated random series to a file.
+    Prompts the user for a message to encode or decode.
+    Returns the message as a string.
     """
-    with open(filename, 'w') as f:
-        f.write("Series 1:\n" + ', '.join(map(str, s1)) + '\n\n')
-        f.write("Series 2:\n" + ', '.join(map(str, s2)) + '\n\n')
-        f.write("Series 3:\n" + ', '.join(map(str, s3)) + '\n\n')
-        f.write("Series 4:\n" + ', '.join(map(str, s4)) + '\n\n')
+    return input("Enter the message to encode/decode: ").strip()
 
-
-
-
-
-
-# test if the two series are identical
-def are_series_identical():
+def get_key():
     """
-    Checks if the two generated random series are identical.
-    """
-    return s1 == s2
+    Prompts the user for a key to use for encoding or decoding.
+    Returns the key as an integer.
+    """ 
+    while True:
+        try:
+            key = int(input("Enter the key 1 to 26 (-ve val to decode): ").strip())
+            if -26 <= key <= 26 and key != 0:
+                return key
+            else:
+                print("Key must be between -26 and 26 (zeros not allowed).")
+        except ValueError:
+            print("Invalid input. Please enter a number between -26 and 26.")
 
-# assert two series are identical
-def assert_series_identical():
-    """
-    Asserts that the two generated random series are identical.
-    Raises an AssertionError if they are not.
-    """
-    assert are_series_identical(), "The two random series are not identical."
-    return True
 
-assert_series_identical()
-if(are_series_identical()):
-    print("The two random series are identical.")
-save_series_to_file('random_series1.txt')
+
+#endregion // END Prompt user for input and key
+
+#region Encode/Decode message
+'''
+def encode_message_ai(message, key):
+    """
+    Encodes the message using the provided key.
+    The key is used to determine the offset for each character in the message.
+    """
+    encoded_message = []
+    for char in message:
+        if char.isalpha():
+            # Get the ASCII value of the character
+            ascii_value = ord(char)
+            # Get the code number based on the key
+            code_number = get_code_number((key + 256) % 256)
+            # Encode the character by adding the code number
+            encoded_char = chr((ascii_value + code_number) % 256)
+            encoded_message.append(encoded_char)
+        else:
+            # If the character is not a letter, keep it unchanged
+            encoded_message.append(char)
+    return ''.join(encoded_message)
+
+
+
+def decode_message_ai(encoded_message, key):
+    """
+    Decodes the message using the provided key.
+    The key is used to determine the offset for each character in the encoded message.
+    """
+    decoded_message = []    
+    for char in encoded_message:
+        if char.isalpha():
+            # Get the ASCII value of the character
+            ascii_value = ord(char)
+            # Get the code number based on the key
+            code_number = get_code_number((key + 256) % 256)
+            # Decode the character by subtracting the code number
+            decoded_char = chr((ascii_value - code_number) % 256)
+            decoded_message.append(decoded_char)
+        else:
+            # If the character is not a letter, keep it unchanged
+            decoded_message.append(char)
+    return ''.join(decoded_message)
+
+def encode_decode_message_zx80(message, key):
+    encoded_message = []
+    code_number = get_code_number(25) #abs(key) - 1)
+    if key < 0:
+        code_number = 26 - code_number #  -1 * code_number
+    for char in message:
+        ascii_val = ord(char) # we get the ASCII code of the char, like using CODE() in ZX80
+        # encode the character
+        encoded_val = ascii_val + code_number - 38
+        if key > 0:
+            encoded_val = encoded_val - 26 * (encoded_val // 26) # this is like using MOD 26 in ZX80
+        else:
+            # in original listing, this is not needed, I suspect because of the the charqacters set and codes used
+            # but for ascii characters, we need to reverse the encoding formula 
+            encoded_val = encoded_val + 26 * (encoded_val // 26)
+        encoded_val += 38
+
+        print(f'Char: {char} ASCII: {ascii_val} Code number: {code_number} Encoded value: {encoded_val} Chaencoded: {chr(encoded_val)}')
+        encoded_message.append(chr(encoded_val))
+
+    return ''.join(encoded_message)
+
+'''
+
+def encode_massage_zx80(message: str, key: int) -> str:
+    '''
+        message: string to encode
+        key: int used to generate the random series. must be higher than 0
+    '''
+    encoded_msg = []
+    rnd_series = generate_random_zx80_series(key)
+    code_number = rnd_series[-1]
+    for char in message:
+        if char.isalpha() or char.isdigit():
+            char_code = determine_zx80_char_code(char)
+            encoded_val = char_code + code_number -38
+            
+            # implement modulas for 62 (number fo alphanumeric characters)
+            encoded_val -= 62 * (encoded_val // 62) # this is like using MODE 62 in ZX80 
+            
+
+            # encoded_val += 38
+            encoded_char = determine_zx80_char_from_code(encoded_val)
+            encoded_msg.append(encoded_char)
+            print(f'Char: {char} ASCII: {char_code} Code number: {code_number} Encoded value: {encoded_val} Char-encoded: {encoded_char}')
+        else:
+            encoded_msg.append(char)
+    return ''.join(encoded_msg)
+
+
+def decode_message_zx80(encoded_message:str, key: int) -> str:
+    '''
+        encoded_message: string to decode
+        key: int used to generate the random series. must be lower than 0
+    '''
+    key *= -1 # convert to positive key
+    decoded_msg = []
+    rnd_series = generate_random_zx80_series(key)
+    code_number = rnd_series[-1]
+    for char in encoded_message:
+        if char.isalpha() or char.isdigit():
+            char_code = determine_zx80_char_code(char)
+            decoded_val = char_code - code_number + 38
+
+            # implement modulas for 62 (number fo alphanumeric characters)
+            decoded_val += 62 * (decoded_val // 62) # this is like using MODE 62 in ZX80 
+
+            # omitted the modulas 26 op for now
+            # decoded_val -= 38
+            decoded_char = determine_zx80_char_from_code(decoded_val)
+            decoded_msg.append(decoded_char)
+            print(f'Char: {char} ASCII: {char_code} Code number: {code_number} Encoded value: {decoded_val} Char-encoded: {decoded_char}')
+        else:
+            decoded_msg.append(char)
+    return ''.join(decoded_msg)
+#endregion // END Encode/Decode message
+
+msg = get_message()
+key = get_key()
+# generate the series based on the key provided
+# series = generate_random_zx80_series(abs(key))
+# print(f'series: {series}')
+'''
+if key > 0:
+    ai_encoded_message = encode_message_ai(msg, key)
+    print(f'Message encoded with {key} using AI methoid: {ai_encoded_message}')
+else:
+    ai_decoded_message = decode_message_ai(msg, key)
+    print(f'Message decoded using AI method: {ai_decoded_message}')
+'''
+# zx80_msg = encode_decode_message_zx80(msg, key)
+# print(f'Message processed using zx80 method: {zx80_msg}')
+# def main():
+
+# print()
+# print(generate_random_series(26))
+
+
+if key > 0 :
+    # encoding
+    encoded_message = encode_massage_zx80(msg, key)
+    print(f'Message encoded with {key} using psedu ZX80 method: {encoded_message}')
+else:
+    # decoding
+    decoded_message = decode_message_zx80(msg, key)
+    print(f'Message decoded with {key} using psedu ZX80 method: {decoded_message}')
+    
+# tmp_coded_val = 62
+# print('lenb of alph-numeric codes: ', len(alpha_numeric_charset))
+# print('Alpha num of 1-based code: ',alpha_numeric_charset[tmp_coded_val - 1])
+# print('Alpha num of 1-based code: ',alpha_numeric_charset[tmp_coded_val + 1])

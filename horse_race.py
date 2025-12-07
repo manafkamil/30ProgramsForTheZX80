@@ -37,6 +37,11 @@
         
     This version tries to closely replicate the BASIC listing
 
+
+    basic programme tried on:
+    - https://zx.researcher.su/en/
+
+
 '''
 
 import random
@@ -47,23 +52,52 @@ MD = 0 #max distance, to replace D in original listing and eleminate confusion i
 D = [0,0,0,0] #distance covered
 M = 100 #money left
 B = 0 # bet amount
-AS = '._/'
-BS = ' /~|'
-CS = '´  `'
+
+# special characters for horses
+# ASCIIT art from https://www.ascii-art.de/
+
+# AS = '._/'
+# BS = ' /~|'
+# CS = '´  `'
+
+AS = '            .\'\''
+BS = '  ._.-.___.\' (`\\'
+CS = ' //(        ( `\''
+DS = '\'/ )\\ ).__. )   '
+ES = '\' <\' `\\ ._/\'\\'
+FS = '   `   \\     \\'
+
+HORSE_ART = [AS, BS, CS, DS, ES, FS]
 
 #region printing
-def print_distance_marker(distance):
+def get_distance_marker(distance:int, factor :int = 1)-> str:
     '''
     for sub-routine in lines 130 to 160
     '''
-    print('^' * distance )
+    return '^' * distance * factor  # each unit of distance is represented by two '^' characters
+
+def print_distance_marker(distance :int):
+    '''
+    for sub-routine in lines 130 to 160
+    '''
+    print(get_distance_marker(distance))
+
+
+def print_ords():    
+    '''
+    for sub-routine in lines 130 to 160
+    '''
+    global O
+    print("Odds for the horses are:")
+    for i in range(4):
+        print(f"Horse {chr(65 + i)}: {O[i]} to 1")
 
 #endregion // END printing
 
 def generate_odds():
     global O
     O = [random.randint(1, 10) for _ in range(4)]
-    print("Odds generated:", O)
+    # print("Odds generated:", O)
 
 def reset_variables():
     '''
@@ -79,6 +113,7 @@ while M > 0:
     reset_variables()
     # 2- generate odds
     generate_odds()
+    print_ords()
     # 3 - get bet
     print(f'You have £{M} to bet.') 
     B = -1
@@ -125,15 +160,13 @@ while M > 0:
                 '''
         # print horses anbd distances
         for i in range(4):
-            print(f"Horse {chr(65 + i)}: ", end='')
-            print_distance_marker(int(D[i]))
-        # TODO:: print the special chars with racing to current max distance
-        print(AS)
-        print_distance_marker(int(MD))
-        print(BS)
-        print_distance_marker(int(MD))
-        print(CS)
-        print_distance_marker(int(MD))
+            print(f"Horse {chr(65 + i)}: ")   
+            for line_index in range(len(HORSE_ART)):
+                txt = get_distance_marker(int(D[i]), 3) + '  ' + HORSE_ART[line_index]
+                print(txt)
+            print(f" Distance covered: {int(D[i])} units")
+            print()
+
 
 
         # user hit a key to continue to next lap
